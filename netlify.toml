@@ -1,3 +1,3 @@
-[[edge-functions]]
+[[edge_functions]]
   path = "/api/tony"
   function = "tony-proxy"
