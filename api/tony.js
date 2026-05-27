@@ -26,7 +26,7 @@ module.exports = async (req, res) => {
         "content-type": "application/json"
       },
       body: JSON.stringify({
-        model: "claude-3-sonnet-20240229",
+        model: "claude-v1",
         max_tokens: 150,
         system: systemPrompt,
         messages: [{ role: "user", content: userText }]
