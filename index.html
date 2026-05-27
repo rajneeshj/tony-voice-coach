@@ -125,22 +125,25 @@
         }
 
         function speakLikeTony(text) {
-            if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.rate = 1.2; 
-                utterance.pitch = 1.0;
-                utterance.lang = 'en-US';
+    if ('speechSynthesis' in window) {
+        // This removes hashtags, asterisks, dashes, and extra spaces from the spoken text
+        const cleanText = text.replace(/[#*_\-]/g, '').trim();
 
-                const voices = window.speechSynthesis.getVoices();
-                const standardVoice = voices.find(voice => voice.lang === 'en-US');
-                if (standardVoice) utterance.voice = standardVoice;
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.rate = 2; 
+        utterance.pitch = 1.5;
+        utterance.lang = 'en-US';
 
-                utterance.onend = () => { resetButton(); };
-                window.speechSynthesis.speak(utterance);
-            } else {
-                resetButton();
-            }
-        }
+        const voices = window.speechSynthesis.getVoices();
+        const standardVoice = voices.find(voice => voice.lang === 'en-US');
+        if (standardVoice) utterance.voice = standardVoice;
+
+        utterance.onend = () => { resetButton(); };
+        window.speechSynthesis.speak(utterance);
+    } else {
+        resetButton();
+    }
+}
 
         function resetButton() {
             startBtn.innerText = "SPEAK 🎙️";
