@@ -1,153 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tony Robbins Voice Coach</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: #0d1117;
-            color: #ffffff;
-            margin: 0;
-            padding: 20px;
-            text-align: center;
-        }
-        .mic-btn {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            border: none;
-            background-color: #ff5a36;
-            color: white;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 90, 54, 0.4);
-            transition: transform 0.2s, background-color 0.2s;
-        }
-        .mic-btn:active {
-            transform: scale(0.95);
-        }
-        .status {
-            margin-top: 30px;
-            font-size: 20px;
-            max-width: 600px;
-            line-height: 1.5;
-            color: #c9d1d9;
-        }
-    </style>
-</head>
-<body>
+function speakLikeTony(text) {
+    if ('speechSynthesis' in window) {
+        // Cancel any ongoing speech before starting new speech
+        window.speechSynthesis.cancel();
 
-    <button id="start-btn" class="mic-btn">SPEAK 🎙️</button>
-    <div id="status-text" class="status">Click the button when you are ready to change your state.</div>
-
-    <script>
-        const startBtn = document.getElementById('start-btn');
-        const statusText = document.getElementById('status-text');
-
-        // Points to our local secure proxy route
-        const localEndpoint = "/api/tony";
+        const utterance = new SpeechSynthesisUtterance(text);
         
-        const systemPrompt = `
-        You are Tony Robbins, the ultimate peak performance coach. Your mission is to shatter the user's limiting beliefs, eliminate passive waiting, and drive them into massive, disciplined action. 
-        - Speak with absolute intensity, authority, and certainty.
-        - Use high-energy, physical language (e.g., "shatter the pattern", "step into your power").
-        - Focus heavily on shifting the user's "State" and "Identity".
-        - Keep your responses brief, sharp, and punchy so they can be easily digested as audio. Do not write long paragraphs.
-        - End every response by demanding a clear commitment to action.
-        `;
+        // Elevate energy and natural human cadence
+        utterance.rate = 1.15;  
+        utterance.pitch = 0.95; 
+        utterance.lang = 'en-US';
 
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        let recognition;
+        // Find the most premium, natural sounding human voice available on your device
+        const voices = window.speechSynthesis.getVoices();
+        
+        // Priority list for high-quality natural voices
+        const premiumVoice = voices.find(voice => 
+            voice.lang.startsWith('en') && 
+            (voice.name.includes('Natural') || 
+             voice.name.includes('Google') || 
+             voice.name.includes('David') || 
+             voice.name.includes('Zira'))
+        );
 
-        if (SpeechRecognition) {
-            recognition = new SpeechRecognition();
-            recognition.continuous = true; 
-            recognition.interimResults = false;
-            recognition.lang = 'en-US';
-
-            recognition.onresult = async (event) => {
-                const currentResultIndex = event.resultIndex;
-                const transcript = event.results[currentResultIndex][0].transcript;
-                
-                recognition.stop(); 
-                await askTonyRobbins(transcript);
-            };
-
-            recognition.onerror = (event) => {
-                statusText.innerText = "Speech recognition error. Let's try again.";
-                resetButton();
-            };
+        if (premiumVoice) {
+            utterance.voice = premiumVoice;
+        } else {
+            // Fallback to standard US English if premium isn't found
+            const standardVoice = voices.find(voice => voice.lang === 'en-US');
+            if (standardVoice) utterance.voice = standardVoice;
         }
 
-        startBtn.addEventListener('click', () => {
-            if (!SpeechRecognition) {
-                statusText.innerText = "Speech recognition is not supported in this browser.";
-                return;
-            }
-            
-            statusText.innerText = "Listening... Speak your mind. Take your time to collect your thoughts.";
-            startBtn.innerText = "🔴 LISTENING";
-            recognition.start();
-        });
-
-        async function askTonyRobbins(userText) {
-            try {
-                statusText.innerText = "Tony is processing your state...";
-
-                // Call our local serverless proxy route
-                const response = await fetch(localEndpoint, {
-                    method: "POST",
-                    headers: { "content-type": "application/json" },
-                    body: JSON.stringify({ userText, systemPrompt })
-                });
-
-                const data = await response.json();
-                console.log("Backend response data:", data);
-		if (data.content && data.content[0]) {
-                    const aiResponse = data.content[0].text;
-                    statusText.innerText = "Tony says: " + aiResponse;
-                    speakLikeTony(aiResponse);
-                } else {
-                    throw new Error("Invalid backend response");
-                }
-
-            } catch (error) {
-                statusText.innerText = "Coaching connection paused. Did you add the API Key to Netlify?";
-                console.error(error);
-                resetButton();
-            }
-        }
-
-        function speakLikeTony(text) {
-            if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.rate = 1.2; 
-                utterance.pitch = 1.0;
-                utterance.lang = 'en-US';
-
-                const voices = window.speechSynthesis.getVoices();
-                const standardVoice = voices.find(voice => voice.lang === 'en-US');
-                if (standardVoice) utterance.voice = standardVoice;
-
-                utterance.onend = () => { resetButton(); };
-                window.speechSynthesis.speak(utterance);
-            } else {
-                resetButton();
-            }
-        }
-
-        function resetButton() {
-            startBtn.innerText = "SPEAK 🎙️";
-            statusText.innerText = "Click the button when you are ready to speak again.";
-        }
-    </script>
-</body>
-</html>
+        utterance.onend = () => { resetButton(); };
+        utterance.onerror = () => { resetButton(); };
+        window.speechSynthesis.speak(utterance);
+    } else {
+        resetButton();
+    }
+}
