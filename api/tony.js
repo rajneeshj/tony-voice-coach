@@ -40,8 +40,9 @@ module.exports = async (req, res) => {
     return res.status(200).json(data);
 
   } catch (error) {
-    return res.status(200).json({
-      content: [{ text: "Error: " + error.message }]
+     console.error("Anthropic API Error Details:", error);
+     return res.status(200).json({
+     content: [{ text: "Error: " + error.message }]
     });
   }
 };
