@@ -9,7 +9,7 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
-
+  console.log("Incoming request body:", req.body);
   try {
     const { userText, systemPrompt } = req.body;
 
