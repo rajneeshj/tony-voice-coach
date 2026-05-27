@@ -142,11 +142,12 @@
 
         function speakLikeRajneesh(text) {
             if ('speechSynthesis' in window) {
-                const cleanText = text.replace(/[#*_\-]/g, '').trim();
+                // This removes hashtags, asterisks, dashes, and common emojis before speaking
+const cleanText = text.replace(/[#*_\-❌🔴🎙️]/g, '').trim();
 
                 const utterance = new SpeechSynthesisUtterance(cleanText);
-                utterance.rate = 1.2; 
-                utterance.pitch = 1.0;
+                utterance.rate = 1.5; 
+                utterance.pitch = 1.2;
                 utterance.lang = 'en-US';
 
                 const voices = window.speechSynthesis.getVoices();
