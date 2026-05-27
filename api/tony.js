@@ -36,8 +36,10 @@ module.exports = async (req, res) => {
       })
     });
 
-    const data = await response.json();
-    return res.status(200).json(data);
+    console.log("Anthropic API Response Status:", response.status);
+const data = await response.json();
+console.log("Anthropic API Response Body:", JSON.stringify(data));
+return res.status(200).json(data);
 
   } catch (error) {
      console.error("Anthropic API Error Details:", error);
