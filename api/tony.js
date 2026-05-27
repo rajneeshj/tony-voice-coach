@@ -8,7 +8,8 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { userText, systemPrompt } = req.body;
+    // We now extract 'messages' (the history array) instead of a single 'userText'
+    const { messages, systemPrompt } = req.body;
     const apiKey = process.env.ANTHROPIC_API_KEY;
 
     if (!apiKey) {
@@ -17,7 +18,6 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Using the original baseline model identifier for the 2023-06-01 API version
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -26,16 +26,15 @@ module.exports = async (req, res) => {
         "content-type": "application/json"
       },
       body: JSON.stringify({
-model: "claude-haiku-4-5-20251001",
-max_tokens: 150,
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 150,
         system: systemPrompt,
-        messages: [{ role: "user", content: userText }]
+        messages: messages // Passing the entire conversation history array here
       })
     });
 
     const data = await response.json();
 
-    // If Anthropic returns an error object, structure it so the frontend can display it safely
     if (data.type === 'error' || data.error) {
       return res.status(200).json({
         content: [{ text: "Anthropic API Error: " + (data.error.message || "Unknown error") }]

@@ -54,6 +54,9 @@
 
         const localEndpoint = "/api/tony";
         
+        // This array stores our continuous conversation history 🧠
+        let conversationHistory = [];
+
         const systemPrompt = `
         You are Tony Robbins, the ultimate peak performance coach. Your mission is to shatter the user's limiting beliefs, eliminate passive waiting, and drive them into massive, disciplined action. 
         - Speak with absolute intensity, authority, and certainty.
@@ -101,17 +104,26 @@
             try {
                 statusText.innerText = "Tony is processing your state...";
 
+                // 1. Save what the user just said into our memory array
+                conversationHistory.push({ role: "user", content: userText });
+
+                // 2. Send the entire history array to our updated backend
                 const response = await fetch(localEndpoint, {
                     method: "POST",
                     headers: { "content-type": "application/json" },
-                    body: JSON.stringify({ userText, systemPrompt })
+                    body: JSON.stringify({ messages: conversationHistory, systemPrompt })
                 });
 
                 const data = await response.json();
                 console.log("Backend response data:", data);
+                
                 if (data.content && data.content[0]) {
                     const aiResponse = data.content[0].text;
                     statusText.innerText = "Tony says: " + aiResponse;
+                    
+                    // 3. Save Tony's response into our memory array too
+                    conversationHistory.push({ role: "assistant", content: aiResponse });
+
                     speakLikeTony(aiResponse);
                 } else {
                     throw new Error("Invalid backend response");
@@ -125,25 +137,25 @@
         }
 
         function speakLikeTony(text) {
-    if ('speechSynthesis' in window) {
-        // This removes hashtags, asterisks, dashes, and extra spaces from the spoken text
-        const cleanText = text.replace(/[#*_\-]/g, '').trim();
+            if ('speechSynthesis' in window) {
+                // Clean formatting symbols before speaking
+                const cleanText = text.replace(/[#*_\-]/g, '').trim();
 
-        const utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.rate = 2; 
-        utterance.pitch = 1.5;
-        utterance.lang = 'en-US';
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.rate = 1.2; 
+                utterance.pitch = 1.0;
+                utterance.lang = 'en-US';
 
-        const voices = window.speechSynthesis.getVoices();
-        const standardVoice = voices.find(voice => voice.lang === 'en-US');
-        if (standardVoice) utterance.voice = standardVoice;
+                const voices = window.speechSynthesis.getVoices();
+                const standardVoice = voices.find(voice => voice.lang === 'en-US');
+                if (standardVoice) utterance.voice = standardVoice;
 
-        utterance.onend = () => { resetButton(); };
-        window.speechSynthesis.speak(utterance);
-    } else {
-        resetButton();
-    }
-}
+                utterance.onend = () => { resetButton(); };
+                window.speechSynthesis.speak(utterance);
+            } else {
+                resetButton();
+            }
+        }
 
         function resetButton() {
             startBtn.innerText = "SPEAK 🎙️";
