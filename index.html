@@ -168,7 +168,52 @@
             const standardVoice = voices.find(voice => voice.lang.startsWith('en'));
             if (standardVoice) utterance.voice = standardVoice;
         }
+function speakLikeRajneesh(text) {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); 
 
+        const cleanText = text.replace(/[#*_\-❌🔴🎙️]/g, '').trim();
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        
+        utterance.rate = 0.95; // Slightly slower for absolute clarity on mobile  
+        utterance.pitch = 1.0; 
+
+        const voices = window.speechSynthesis.getVoices();
+        
+        // Strategy 1: Look for an Indian English voice first 🇮🇳
+        let selectedVoice = voices.find(voice => 
+            voice.lang === 'en-IN' || voice.lang.startsWith('en_IN')
+        );
+
+        // Strategy 2: If no Indian voice, force ANY available male voice 🧑
+        if (!selectedVoice) {
+            selectedVoice = voices.find(voice => 
+                voice.lang.startsWith('en') && 
+                (voice.name.includes('Male') || 
+                 voice.name.includes('David') || 
+                 voice.name.includes('Google US English') ||
+                 voice.name.includes('Rishi'))
+            );
+        }
+
+        // Strategy 3: Ultimate fallback to any standard English voice
+        if (!selectedVoice) {
+            selectedVoice = voices.find(voice => voice.lang.startsWith('en'));
+        }
+
+        if (selectedVoice) {
+            utterance.voice = selectedVoice;
+            // Force the language property to match the chosen voice
+            utterance.lang = selectedVoice.lang; 
+        }
+
+        utterance.onend = () => { resetButton(); };
+        utterance.onerror = () => { resetButton(); };
+        window.speechSynthesis.speak(utterance);
+    } else {
+        resetButton();
+    }
+}
         utterance.onend = () => { resetButton(); };
         utterance.onerror = () => { resetButton(); };
         window.speechSynthesis.speak(utterance);
