@@ -1,4 +1,4 @@
-const fetch = require('node-fetch'); // Built-in fetch support in Vercel Node runtime
+// Built-in fetch support in Vercel Node runtime
 
 module.exports = async (req, res) => {
   // Handle CORS preflight requests
