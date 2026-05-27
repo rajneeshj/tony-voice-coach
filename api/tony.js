@@ -1,24 +1,23 @@
-export const config = {
-  runtime: 'edge',
-};
+const fetch = require('node-fetch'); // Built-in fetch support in Vercel Node runtime
 
-export default async (request) => {
-  if (request.method !== "POST") {
-    return new Response("Method Not Allowed", { status: 405 });
+module.exports = async (req, res) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   try {
-    const { userText, systemPrompt } = await request.json();
+    const { userText, systemPrompt } = req.body;
 
-    // Grab the API key using Vercel's standard environment variable access
     const apiKey = process.env.ANTHROPIC_API_KEY;
 
     if (!apiKey) {
-      return new Response(JSON.stringify({ 
-        content: [{ text: "API key is missing in Vercel settings!" }] 
-      }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" }
+      return res.status(200).json({
+        content: [{ text: "API key is missing in Vercel settings!" }]
       });
     }
 
@@ -33,27 +32,16 @@ export default async (request) => {
         model: "claude-3-5-sonnet-20241022",
         max_tokens: 150,
         system: systemPrompt,
-        messages: [
-          {
-            role: "user",
-            content: userText
-          }
-        ]
+        messages: [{ role: "user", content: userText }]
       })
     });
 
     const data = await response.json();
-    
-    return new Response(JSON.stringify(data), {
-      headers: { "Content-Type": "application/json" }
-    });
+    return res.status(200).json(data);
 
   } catch (error) {
-    return new Response(JSON.stringify({ 
-      content: [{ text: "Error: " + error.message }] 
-    }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" }
+    return res.status(200).json({
+      content: [{ text: "Error: " + error.message }]
     });
   }
 };
