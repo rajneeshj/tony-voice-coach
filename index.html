@@ -140,26 +140,42 @@
             }
         }
 
-        function speakLikeRajneesh(text) {
-            if ('speechSynthesis' in window) {
-                // This removes hashtags, asterisks, dashes, and common emojis before speaking
-const cleanText = text.replace(/[#*_\-❌🔴🎙️]/g, '').trim();
+       function speakLikeRajneesh(text) {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); 
 
-                const utterance = new SpeechSynthesisUtterance(cleanText);
-                utterance.rate = 1.5; 
-                utterance.pitch = 1.2;
-                utterance.lang = 'en-US';
+        const cleanText = text.replace(/[#*_\-❌🔴🎙️]/g, '').trim();
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        
+        // Settings optimized for a natural, clear cadence
+        utterance.rate = 1.0;  
+        utterance.pitch = 1.0; 
+        utterance.lang = 'en-IN'; // Setting the language target to Indian English
 
-                const voices = window.speechSynthesis.getVoices();
-                const standardVoice = voices.find(voice => voice.lang === 'en-US');
-                if (standardVoice) utterance.voice = standardVoice;
+        const voices = window.speechSynthesis.getVoices();
+        
+        // Look for any available Indian English voice on the device
+        const indianVoice = voices.find(voice => 
+            voice.lang === 'en-IN' || 
+            voice.lang.startsWith('en_IN') ||
+            voice.name.includes('India')
+        );
 
-                utterance.onend = () => { resetButton(); };
-                window.speechSynthesis.speak(utterance);
-            } else {
-                resetButton();
-            }
+        if (indianVoice) {
+            utterance.voice = indianVoice;
+        } else {
+            // Fallback to standard English if en-IN is completely missing
+            const standardVoice = voices.find(voice => voice.lang.startsWith('en'));
+            if (standardVoice) utterance.voice = standardVoice;
         }
+
+        utterance.onend = () => { resetButton(); };
+        utterance.onerror = () => { resetButton(); };
+        window.speechSynthesis.speak(utterance);
+    } else {
+        resetButton();
+    }
+}
 
         function resetButton() {
             startBtn.innerText = "SPEAK 🎙️";
